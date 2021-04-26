@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.maxtrain.prs.models.JsonResponse;
 import com.maxtrain.prs.models.User;
@@ -19,12 +22,19 @@ import com.maxtrain.prs.repositories.UserRepository;
 
 @CrossOrigin
 @Controller
-@RequestMapping(path="/Users")
+@RequestMapping(path="/api/users")
 public class UserController {
 
     @Autowired
     private UserRepository userRepository;
 
+    @GetMapping("{username}/{password}")
+    public ResponseEntity<User> getForLogin(@PathVariable String username, @PathVariable String password) {
+    	Optional<User> user = userRepository.findByUsernameAndPassword(username, password);
+    	return user.isPresent() 
+    			? new ResponseEntity<User>(user.get(), HttpStatus.OK)
+    			: new ResponseEntity<User>(HttpStatus.NOT_FOUND);
+    }
     @GetMapping(path="/ListRaw")
     public @ResponseBody Iterable<User> getAllUsersRaw() {
     	return userRepository.findAll();
